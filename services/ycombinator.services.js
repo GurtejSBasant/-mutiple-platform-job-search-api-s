@@ -1,22 +1,27 @@
 const httpUtil = require('../utils/ycombinator.utils');
 const config = require('../config/ycombinator.config');
 
-exports.search = async (searchQuery, page, hitsPerPage) => {
-    const searchParams = {
-        query: searchQuery,
-        page: page,
-        filters: "",
-        attributesToRetrieve: ["company_id"],
-        hitsPerPage: hitsPerPage,
+exports.search = async (searchParams) => {
+    // Ensure required parameters are present
+    const params = {
+        query: searchParams.query || "",
+        page: searchParams.page || 0,
+        hitsPerPage: searchParams.hitsPerPage || 10,
         clickAnalytics: true,
-        distinct: true
+        distinct: true,
+        attributesToRetrieve: ["company_id"],
     };
+
+    // Add filters if present
+    if (searchParams.filters) {
+        params.filters = searchParams.filters;
+    }
 
     const payload = {
         requests: [
             {
                 indexName: "WaaSPublicCompanyJob_production",
-                params: new URLSearchParams(searchParams).toString()
+                params: new URLSearchParams(params).toString()
             }
         ]
     };
