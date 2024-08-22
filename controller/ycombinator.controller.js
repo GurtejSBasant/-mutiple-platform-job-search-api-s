@@ -11,10 +11,12 @@ exports.algoliaSearch = async (req, res) => {
             company_waas_stage,
             company_parent_sector,
             location,
-            min_experience_range,
+            minExperience,
+            maxExperience,
             company_highlight_latinx,
             locations_for_search,
-            job_type
+            jobtype,
+            isPermanentHiring
         } = req.body;
 
         const searchParams = {
@@ -24,6 +26,7 @@ exports.algoliaSearch = async (req, res) => {
         };
 
         const filters = [];
+        
 
         // Add role filter
         if (role) {
@@ -34,20 +37,11 @@ exports.algoliaSearch = async (req, res) => {
             }
         }
 
-        // Add min_experience filter
-        if (min_experience_range) {
-            const experienceMap = {
-                "0 to 1 Year": 0,
-                "1 to 3 Years": 1,
-                "3 to 5 Years": 3,
-                "5 to 8 Years": 5,
-                "10+ Years": 10
-            };
-            const minExperience = experienceMap[min_experience_range];
-            if (minExperience !== undefined) {
-                filters.push(`min_experience:${minExperience}`);
-            }
+        // Add minExperience filter
+        if (minExperience !== undefined) {
+            filters.push(`min_experience:${minExperience}`);
         }
+        console.log("filters:",filters)
 
         // Add other filters if provided
         if (company_team_size) filters.push(`company_team_size >= ${company_team_size}`);
@@ -55,20 +49,27 @@ exports.algoliaSearch = async (req, res) => {
         if (company_parent_sector) filters.push(`company_parent_sector:"${company_parent_sector}"`);
         if (company_highlight_latinx !== undefined) filters.push(`company_highlight_latinx:${company_highlight_latinx}`);
         if (locations_for_search) filters.push(`locations_for_search:"${locations_for_search}"`);
-        if (job_type) filters.push(`job_type:"${job_type}"`);
 
         // Add remote filter based on location
-        if (location) {
-            const locationMap = {
+        if (jobtype) {
+            const jobtypeMap = {
                 onsite: 'no',
                 remote: 'only',
                 hybrid: 'yes'
             };
-            const remoteValue = locationMap[location.toLowerCase()];
+            const remoteValue = jobtypeMap[jobtype.toLowerCase()];
             if (remoteValue) {
                 filters.push(`remote:${remoteValue}`);
             }
         }
+        console.log("filters2:",filters)
+        // Add jobtype filter based on isPermanentHiring
+        if (isPermanentHiring !== undefined) {
+            const jobtype = isPermanentHiring ? 'fulltime' : 'contract';
+            filters.push(`job_type:${jobtype}`);
+        }
+
+        console.log("filters3",filters)
 
         // Combine all filters with AND operator
         if (filters.length > 0) {
