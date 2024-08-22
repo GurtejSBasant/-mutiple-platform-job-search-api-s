@@ -86,8 +86,76 @@ exports.algoliaSearch = async (req, res) => {
 exports.fetchCompanyData = async (req, res) => {
     try {
         const { companiesId } = req.body;
-        const result = await algoliaService.fetchCompanies(companiesId);
-        res.json(result);
+        const data = await algoliaService.fetchCompanies(companiesId);
+        console.log('Response data type:', typeof data);
+        console.log('Response data keys:', Object.keys(data));
+
+        // Extract jobs from all companies
+        const allJobs = [];
+
+        if (data && data.companies && Array.isArray(data.companies)) {
+            console.log('Processing companies array');
+            data.companies.forEach((company, index) => {
+                console.log(`Processing company at index ${index}:`, company ? company.name : 'undefined');
+                if (company && company.jobs && Array.isArray(company.jobs)) {
+                    console.log(`Found ${company.jobs.length} jobs for ${company.name || 'unnamed company'}`);
+                    company.jobs.forEach(job => {
+                        // Determine work type
+                        let workType;
+                        if (job.remote === 'only') {
+                            workType = 'remote';
+                        } else if (job.remote === 'yes') {
+                            workType = 'hybrid';
+                        } else {
+                            workType = 'onsite';
+                        }
+
+                        // Transform developerTechnologiesRequired
+                        const transformedTechnologies = job.skills.map(skill => ({
+                            id: skill.id,
+                            technologyName: skill.name,
+                            popularity: skill.popularity
+                        }));
+
+                        // Create a new object with the renamed and transformed keys
+                        const transformedJob = {
+                            ...job,
+                            requirementName: job.title,
+                            developerTechnologiesRequired: transformedTechnologies,
+                            jobDescription: job.description,
+                            averageBudget: {
+                                min: job.salary_min,
+                                max: job.salary_max
+                            },
+                            location: Array.isArray(job.locations) ? job.locations[0] : (job.locations || ''),
+                            developerExperienceRequired: {
+                                min: parseInt(job.pretty_min_experience) || 0,
+                                max: null
+                            },
+                            workType: workType
+                        };
+
+                        // Delete the old keys
+                        delete transformedJob.title;
+                        delete transformedJob.skills;
+                        delete transformedJob.description;
+                        delete transformedJob.salary_min;
+                        delete transformedJob.salary_max;
+                        delete transformedJob.locations;
+                        delete transformedJob.pretty_min_experience;
+                        delete transformedJob.remote;
+
+                        allJobs.push(transformedJob);
+                    });
+                }
+            });
+        } else {
+            console.log('Unexpected data structure:', typeof data);
+            throw new Error('Unexpected data structure received from API');
+        }
+
+        console.log('Total jobs extracted:', allJobs.length);
+        res.json({ jobs: allJobs });
     } catch (error) {
         console.error('Error in fetchCompanyData:', error);
         res.status(error.response?.status || 500).json(error.response?.data || { message: error.message });
