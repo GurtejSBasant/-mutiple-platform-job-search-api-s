@@ -14,7 +14,6 @@ exports.algoliaSearch = async (req, res) => {
             minExperience,
             maxExperience,
             company_highlight_latinx,
-            locations_for_search,
             jobtype,
             isPermanentHiring
         } = req.body;
@@ -26,6 +25,7 @@ exports.algoliaSearch = async (req, res) => {
         };
 
         const filters = [];
+        const locations_for_search= "IN"
         
 
         // Add role filter
