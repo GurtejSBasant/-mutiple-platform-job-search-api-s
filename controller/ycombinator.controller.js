@@ -23,6 +23,7 @@ exports.algoliaSearch = async (req, res) => {
             page: page !== undefined ? page : 0,
             hitsPerPage: hitsPerPage !== undefined ? hitsPerPage : 10,
         };
+        console.log("Search:",searchParams)
 
         const filters = [];
         const locations_for_search= "IN"
