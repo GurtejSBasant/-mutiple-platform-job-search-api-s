@@ -80,9 +80,12 @@ class JobhaiService {
     };
     
     try {
+      console.log("before axios request")
       const response = await axios.post(url, payload, { headers });
+      console.log("response of axios:",response)
       return response.data;
     } catch (error) {
+      console.log("error:",error)
       console.error('Error calling job:', error.message);
       throw error;
     }
