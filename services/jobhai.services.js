@@ -1,4 +1,34 @@
 const axios = require('axios');
+const https = require('https');
+
+async function makeNodeFetchRequest(url, method, headers, data) {
+  const startTime = Date.now();
+  console.log(`[${new Date().toISOString()}] Starting request to ${url}`);
+
+  try {
+    const response = await fetch(url, {
+      method,
+      headers,
+      body: JSON.stringify(data),
+      timeout: 10000 // 10 seconds timeout
+    });
+
+    const endTime = Date.now();
+    console.log(`[${new Date().toISOString()}] Response received in ${endTime - startTime}ms. Status: ${response.status}`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const jsonResponse = await response.json();
+    console.log(`[${new Date().toISOString()}] Response parsed successfully`);
+    return jsonResponse;
+  } catch (error) {
+    const endTime = Date.now();
+    console.error(`[${new Date().toISOString()}] Request failed after ${endTime - startTime}ms. Error: ${error.message}`);
+    throw error;
+  }
+}
 
 
 class JobhaiService {
@@ -67,29 +97,33 @@ class JobhaiService {
     }
   }
 
-  static async callJob(payload) {
-    const url = `https://api.jobhai.com/jobs/v3/call`;
-    const headers = {
-      'Authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXlsb2FkIjp7InVzZXJfaWQiOjExMzM5MjI2LCJzdGF0dXMiOiJ2ZXJpZmllZCJ9LCJpYXQiOjE3MTk1Njk0OTYsImV4cCI6MTc1MTEwNTQ5Nn0.BJS0NbDS3mkctB-nNICn2sb105HNkzC5_hrfEkjB8Aw',
-      'Content-Type': 'application/json;charset=UTF-8',
-      'Device-Id': '5d1679ee-3690-466b-9799-ceaf0074a4f4',
-      'Language': 'en',
-      'Origin': 'https://www.jobhai.com',
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-      'X-Transaction-Id': 'JS-WEB-3ee57f93-374a-4e7c-b550-4d6a971e26ef'
-    };
-    
-    try {
-      console.log("before axios request")
-      const response = await axios.post(url, payload, { headers });
-      console.log("response of axios:",response)
-      return response.data;
-    } catch (error) {
-      console.log("error:",error)
-      console.error('Error calling job:', error.message);
-      throw error;
-    }
+
+  // Usage in your callJob function
+  // Usage in your callJob function would be similar to before
+static async callJob(payload) {
+  const url = `https://api.jobhai.com/jobs/v3/call`;
+  const headers = {
+    'Authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXlsb2FkIjp7InVzZXJfaWQiOjExMzM5MjI2LCJzdGF0dXMiOiJ2ZXJpZmllZCJ9LCJpYXQiOjE3MTk1Njk0OTYsImV4cCI6MTc1MTEwNTQ5Nn0.BJS0NbDS3mkctB-nNICn2sb105HNkzC5_hrfEkjB8Aw',
+    'Content-Type': 'application/json;charset=UTF-8',
+    'Device-Id': '5d1679ee-3690-466b-9799-ceaf0074a4f4',
+    'Language': 'en',
+    'Origin': 'https://www.jobhai.com',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+    'X-Transaction-Id': 'JS-WEB-3ee57f93-374a-4e7c-b550-4d6a971e26ef'
+};
+  try {
+    console.log(`[${new Date().toISOString()}] Calling job with payload:`, JSON.stringify(payload));
+    const response = await makeNodeFetchRequest(url, 'POST', headers, payload);
+    console.log(`[${new Date().toISOString()}] Job call successful. Response:`, JSON.stringify(response));
+    return response;
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] Error calling job:`, error.message);
+    throw error;
   }
+}
+
+
+
 
   static async getInfo(payload) {
     const url = `https://www.jobhai.com/v1/utils/getInfo`;
