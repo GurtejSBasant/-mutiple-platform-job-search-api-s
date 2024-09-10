@@ -70,7 +70,7 @@ class JobhaiService {
 
     // Ensure payload and keywords exist
     if (!payload || !Array.isArray(payload.keywords)) {
-        return res.status(400).json({
+        return ({
             error: 'Invalid input',
             message: 'Please provide an array of keywords within the payload.'
         });
