@@ -4,6 +4,7 @@ const JobhaiController = require('../controller/jobhai.controller');
 const router = express.Router();
 
 router.post('/api/data', JobhaiController.getJobs);
+router.post('/recommended-jobs', JobhaiController.recommendedjobs);
 router.get('/job-details', JobhaiController.getJobDetails);
 router.post('/callJobHaiAPI', JobhaiController.callJob);
 router.post('/get-number', JobhaiController.getInfo);

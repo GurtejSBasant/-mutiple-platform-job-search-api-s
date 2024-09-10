@@ -9,6 +9,14 @@ class JobhaiController {
       res.status(500).json({ error: 'Error fetching jobs', details: error.message });
     }
   }
+  static async recommendedjobs(req, res) {
+    try {
+      const jobs = await JobhaiService.recommendedjobs(req.body.payload);
+      res.json(jobs);
+    } catch (error) {
+      res.status(500).json({ error: 'Error fetching jobs', details: error.message });
+    }
+  }
 
   static async getJobDetails(req, res) {
     try {
